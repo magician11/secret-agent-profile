@@ -1,5 +1,12 @@
 <h2>Profile page</h2>
-<h3>Welcome, {{ user.google.displayName }}</h3>
+<div ng-show="user">
+    <h3>Welcome, {{ user.google.displayName }}</h3>
+</div>
+
+<div ng-hide="user">
+    <h3><em>Logging out...</em></h3>
+</div>
+
 <button class="btn btn-info" ng-click="auth.$unauth()">
     Logout
 </button>

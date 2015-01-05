@@ -1,4 +1,4 @@
-angular.module('secretAgentProfile', ['firebase', 'ngRoute'])
+angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
 
 .run(function($rootScope, $location) {
     $rootScope.$on("$routeChangeError", function(event, next, previous, error) {
@@ -66,7 +66,6 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute'])
     }).otherwise({
         redirectTo: '/'
     });
-
     /*
     $locationProvider.html5Mode({
         enabled: true,
@@ -75,7 +74,7 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute'])
     */
 })
 
-.controller("SecretAgentLoginCtrl", function($scope, Auth, Command) {
+.controller("SecretAgentLoginCtrl", function($scope, Auth, Command, $cookies) {
     function authDataCallback(authData) {
         $scope.user = authData;
 
@@ -86,7 +85,11 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute'])
 
     $scope.auth = Auth;
     $scope.auth.$onAuth(authDataCallback);
-    Command.speakFromCommand('You are in a restricted area. Please authenticate.');
+
+    if(!$cookies.alreadyVisited) {
+        Command.speakFromCommand('You are in a restricted area. Please authenticate.');
+        $cookies.alreadyVisited = true;
+    }
 })
 
 .controller("SecretAgentProfileCtrl", function($scope, Auth, Command) {
