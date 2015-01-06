@@ -1,14 +1,45 @@
 angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
 
-.run(function($rootScope, $location) {
+.run(function($rootScope, $location, Browser, $window) {
     $rootScope.$on("$routeChangeError", function(event, next, previous, error) {
-        // We can catch the error thrown when the $requireAuth promise is rejected
-        // and redirect the user back to the home page
+        // Catch the error thrown when the $requireAuth promise is rejected due to not being logged in
+        // and redirect the user back to the login page
         if (error === "AUTH_REQUIRED") {
             console.log("Authentication required.. going to login screen..");
             $location.path('/login');
         }
     });
+
+    // check if Speech Synthesis is supported by their browser
+    $rootScope.$on( "$locationChangeStart", function(event, next, current) {
+
+        if(!$window.speechSynthesis) {
+            console.log("User is using " + Browser() + " and speech synthesis is " + $window.speechSynthesis);
+            $location.path('/browser');
+        }
+    });
+
+})
+
+.factory('Browser', function($window) {
+
+    var getBrowser = function() {
+
+        var userAgent = $window.navigator.userAgent;
+
+        var browsers = {chrome: /chrome/i, safari: /safari/i, firefox: /firefox/i, ie: /internet explorer/i};
+
+        for(var key in browsers) {
+            if (browsers[key].test(userAgent)) {
+                return key;
+            }
+        };
+
+        return 'unknown';
+    };
+
+    return getBrowser;
+
 })
 
 .factory('Auth', function($firebaseAuth) {
@@ -63,6 +94,8 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
                 return Auth.$requireAuth();
             }
         }
+    }).when('/browser', {
+        templateUrl: 'pages/browser.html'
     }).otherwise({
         redirectTo: '/'
     });
