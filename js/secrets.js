@@ -5,7 +5,6 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
         // Catch the error thrown when the $requireAuth promise is rejected due to not being logged in
         // and redirect the user back to the login page
         if (error === "AUTH_REQUIRED") {
-            console.log("Authentication required.. going to login screen..");
             $location.path('/login');
         }
     });
@@ -49,12 +48,12 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
 
 .factory('Command', function($location, $rootScope) {
 
+    // change pages/routes and speak message
     var changePage = function(message, location) {
         var headOffice = new SpeechSynthesisUtterance(message);
 
         headOffice.onend = function(event) {
             $rootScope.$apply(function() {
-                console.log("Going to " + location);
                 $location.path(location);
             });
         };
