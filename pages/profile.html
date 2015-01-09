@@ -9,6 +9,8 @@
                 <tr><td>First name</td><td>{{ user.google.cachedUserProfile.given_name }}</td></tr>
                 <tr><td>Surname</td><td>{{ user.google.cachedUserProfile.family_name }}</td></tr>
                 <tr><td>Gender</td><td>{{ user.google.cachedUserProfile.gender }}</td></tr>
+                <tr><td>Preferred language</td><td>{{ user.google.cachedUserProfile.locale }}</td></tr>
+                <tr><td>Public profile</td><td><a href="{{ user.google.cachedUserProfile.link }}">Google+</a></td></tr>
             </table>
 
             <button class="btn btn-info" ng-click="auth.$unauth()">

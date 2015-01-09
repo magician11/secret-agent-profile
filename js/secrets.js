@@ -13,7 +13,6 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
     $rootScope.$on( "$locationChangeStart", function(event, next, current) {
 
         if(!$window.speechSynthesis) {
-            console.log("User is using " + Browser() + " and speech synthesis is " + $window.speechSynthesis);
             $location.path('/browser');
         }
     });
@@ -42,8 +41,22 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
 })
 
 .factory('Auth', function($firebaseAuth) {
-    var ref = new Firebase('https://popping-heat-7331.firebaseio.com');
-    return $firebaseAuth(ref);
+
+    var init = function() {
+        var ref = new Firebase('https://popping-heat-7331.firebaseio.com');
+        return $firebaseAuth(ref);
+    };
+
+    // booleans to check whether that controller was loaded
+    // used to prevent callbacks being added multiple times on reloads
+    var visitedLoginView = false;
+    var visitedProfileView = false;
+
+    return {
+        firebasebAuth: init,
+        visitedLoginView: visitedLoginView,
+        visitedProfileView: visitedProfileView
+    }
 })
 
 .factory('Command', function($location, $rootScope) {
@@ -82,7 +95,7 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
         controller: 'SecretAgentLoginCtrl',
         resolve: {
             'currentAuth': function(Auth) {
-                return Auth.$waitForAuth();
+                return Auth.firebasebAuth().$waitForAuth();
             }
         }
     }).when('/', {
@@ -90,7 +103,7 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
         controller: 'SecretAgentProfileCtrl',
         resolve: {
             'currentAuth': function(Auth) {
-                return Auth.$requireAuth();
+                return Auth.firebasebAuth().$requireAuth();
             }
         }
     }).when('/browser', {
@@ -106,17 +119,22 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
     */
 })
 
-.controller("SecretAgentLoginCtrl", function($scope, Auth, Command, $cookies) {
+.controller("SecretAgentLoginCtrl", function($scope, Auth, Command, $cookies, $timeout) {
     function authDataCallback(authData) {
-        $scope.user = authData;
+        $timeout(function() {
+            $scope.user = authData;
 
-        if (authData) {    
-            Command.changePage('Thank you ' + $scope.user.google.displayName + '. Verification confirmed.', '/');
-        }
+            if (authData) {    
+                Command.changePage('Thank you ' + $scope.user.google.displayName + '. Verification confirmed.', '/');
+            }
+        });
     }
 
-    $scope.auth = Auth;
-    $scope.auth.$onAuth(authDataCallback);
+    $scope.auth = Auth.firebasebAuth();
+    if(!Auth.visitedLoginView) {
+        $scope.auth.$onAuth(authDataCallback);
+        Auth.visitedLoginView = true;
+    }
 
     if(!$cookies.alreadyVisited) {
         Command.speakFromCommand('You are in a restricted area. Please authenticate.');
@@ -127,6 +145,7 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
 .controller("SecretAgentProfileCtrl", function($scope, Auth, Command) {
 
     function authDataCallback(authData) {
+
         $scope.user = authData;
 
         if (authData == null) {
@@ -134,8 +153,12 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
         }
     }
 
-    $scope.auth = Auth;
-    $scope.auth.$onAuth(authDataCallback);
+    $scope.auth = Auth.firebasebAuth();
+    if(!Auth.visitedProfileView) {
+        $scope.auth.$onAuth(authDataCallback);
+        Auth.visitedProfileView = true;
+    }
+    
     $scope.user = $scope.auth.$getAuth();
 
     Command.speakFromCommand('Welcome back!');
