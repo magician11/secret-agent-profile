@@ -53,7 +53,7 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
     var visitedProfileView = false;
 
     return {
-        firebasebAuth: init,
+        firebaseAuth: init,
         visitedLoginView: visitedLoginView,
         visitedProfileView: visitedProfileView
     }
@@ -95,7 +95,7 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
         controller: 'SecretAgentLoginCtrl',
         resolve: {
             'currentAuth': function(Auth) {
-                return Auth.firebasebAuth().$waitForAuth();
+                return Auth.firebaseAuth().$waitForAuth();
             }
         }
     }).when('/', {
@@ -103,7 +103,7 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
         controller: 'SecretAgentProfileCtrl',
         resolve: {
             'currentAuth': function(Auth) {
-                return Auth.firebasebAuth().$requireAuth();
+                return Auth.firebaseAuth().$requireAuth();
             }
         }
     }).when('/browser', {
@@ -121,16 +121,16 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
 
 .controller("SecretAgentLoginCtrl", function($scope, Auth, Command, $cookies, $timeout) {
     function authDataCallback(authData) {
-        $timeout(function() {
-            $scope.user = authData;
 
-            if (authData) {    
-                Command.changePage('Thank you ' + $scope.user.google.displayName + '. Verification confirmed.', '/');
-            }
-        });
+        if (authData) {    
+            $scope.$apply();
+            Command.changePage('Thank you ' + authData.google.displayName + '. Verification confirmed.', '/');
+        }
+
     }
 
-    $scope.auth = Auth.firebasebAuth();
+    $scope.auth = Auth.firebaseAuth();
+
     if(!Auth.visitedLoginView) {
         $scope.auth.$onAuth(authDataCallback);
         Auth.visitedLoginView = true;
@@ -153,12 +153,12 @@ angular.module('secretAgentProfile', ['firebase', 'ngRoute', 'ngCookies'])
         }
     }
 
-    $scope.auth = Auth.firebasebAuth();
+    $scope.auth = Auth.firebaseAuth();
     if(!Auth.visitedProfileView) {
         $scope.auth.$onAuth(authDataCallback);
         Auth.visitedProfileView = true;
     }
-    
+
     $scope.user = $scope.auth.$getAuth();
 
     Command.speakFromCommand('Welcome back!');

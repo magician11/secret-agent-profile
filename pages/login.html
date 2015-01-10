@@ -1,5 +1,5 @@
 <div class="sap-login">
-    <div ng-hide="user">
+    <div ng-hide="auth.$getAuth()">
         <span class="glyphicon glyphicon-globe" aria-hidden="true"></span>
         <h1>Agent Login</h1>
         <button ng-click="auth.$authWithOAuthPopup('google')" class="btn btn-danger btn-lg">
@@ -7,7 +7,7 @@
         </button>
     </div>
 
-    <div ng-show="user" class="spinner">
+    <div ng-show="auth.$getAuth()" class="spinner">
         <div class="cube1"></div>
         <div class="cube2"></div>
     </div>
